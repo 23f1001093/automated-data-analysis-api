@@ -5,3 +5,8 @@ requests
 scikit-learn
 matplotlib
 python-multipart
+lxml
+openai
+duckdb
+pyarrow
+pillow
