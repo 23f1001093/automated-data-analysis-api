@@ -1,48 +1,35 @@
-# main.py
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from typing import List, Dict, Any
-import uvicorn
-import time
-import os
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from analysis_agent import run_analysis_async
 
 app = FastAPI()
 
-# configuration via env
-MAX_SECONDS = int(os.getenv("AGENT_MAX_SECONDS", "170"))  # leave margin for 3-minute limit
+@app.post("/api/")
+async def analyze(request: Request):
+    form = await request.form()
+    files_dict = {}
 
-@app.post("/api/", response_model=Any)
-async def data_analyst_agent(files: List[UploadFile] = File(...)):
-    """
-    Accepts multipart/form-data:
-      - questions.txt (required)
-      - 0..N other files (data.csv, data.parquet, images...)
-    Returns whatever the analysis returns (JSON array/object/string).
-    """
-    start = time.time()
+    # Read all uploaded files into memory
+    for name, file in form.items():
+        if hasattr(file, "filename"):
+            content = await file.read()
+            files_dict[file.filename] = content
 
-    # read uploads into memory (small-to-medium payloads)
-    uploaded = {}
-    questions_text = None
-    for f in files:
-        name = f.filename or ""
-        content = await f.read()
-        uploaded[name] = content
-        if name.lower() == "questions.txt" or name.lower().endswith("questions.txt"):
-            try:
-                questions_text = content.decode("utf-8", errors="ignore")
-            except:
-                questions_text = content.decode("latin-1", errors="ignore")
+    # questions.txt is mandatory
+    if "questions.txt" not in files_dict:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "questions.txt is required"}
+        )
 
-    if not questions_text:
-        raise HTTPException(status_code=400, detail="questions.txt is required in the multipart upload.")
+    # Read questions as string
+    questions_str = files_dict["questions.txt"].decode("utf-8", errors="ignore")
 
-    # offload to analysis agent (this function is async and has its own time check)
     try:
-        result = await run_analysis_async(questions_text, uploaded, start_time=start, max_seconds=MAX_SECONDS)
-        return result
+        output = await run_analysis_async(
+            questions=questions_str,
+            files=files_dict
+        )
+        return JSONResponse(content=output)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=int(os.getenv("PORT", "8000")), log_level="info")
+        return JSONResponse(status_code=500, content={"error": str(e)})
