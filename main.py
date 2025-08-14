@@ -12,7 +12,6 @@ from utils import answer_all_questions
 app = FastAPI()
 
 def parse_questions_from_file(file_content: bytes) -> str:
-    # Decode the bytes content to a string
     return file_content.decode('utf-8')
 
 @app.post("/api/")
@@ -20,7 +19,6 @@ async def analyze_data(files: List[UploadFile] = File(...)):
     if not files:
         return JSONResponse(status_code=400, content={"error": "No files provided."})
 
-    # Find questions.txt and other files
     questions_content = None
     file_paths = {}
     temp_dir = "temp_uploads"
@@ -41,10 +39,8 @@ async def analyze_data(files: List[UploadFile] = File(...)):
         if not questions_content:
             return JSONResponse(status_code=400, content={"error": "questions.txt is required"})
 
-        # Get answers using the new, task-agnostic function
         answers = answer_all_questions(questions_content, file_paths)
         return JSONResponse(content=answers)
     
     finally:
-        # Clean up the temporary directory
         shutil.rmtree(temp_dir)
