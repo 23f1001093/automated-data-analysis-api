@@ -1,12 +1,10 @@
 fastapi
-uvicorn[standard]
+uvicorn
 pandas
 requests
-scikit-learn
-matplotlib
-python-multipart
+beautifulsoup4
 lxml
-openai
-duckdb
+matplotlib
+seaborn
+numpy
 pyarrow
-pillow
