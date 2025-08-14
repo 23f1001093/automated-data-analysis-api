@@ -1,49 +1,50 @@
-import json
-import tempfile
-import shutil
-import os
+import pandas as pd
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
-from utils import (
-    parse_questions,
-    answer_all_questions,
-    ensure_eval_array
-)
+from typing import List
+import os
+import shutil
+import json
+
+# Import the new, more robust utils file
+from utils import answer_all_questions
 
 app = FastAPI()
 
-@app.post("/api/")
-async def analyze_api(files: list[UploadFile] = File(...)):
-    temp_dir = None
-    try:
-        # Create a temporary directory to save uploaded files
-        temp_dir = tempfile.mkdtemp()
-        file_paths = []
-        questions_file = None
+def parse_questions_from_file(file_content: bytes) -> str:
+    # Decode the bytes content to a string
+    return file_content.decode('utf-8')
 
+@app.post("/api/")
+async def analyze_data(files: List[UploadFile] = File(...)):
+    if not files:
+        return JSONResponse(status_code=400, content={"error": "No files provided."})
+
+    # Find questions.txt and other files
+    questions_content = None
+    file_paths = {}
+    temp_dir = "temp_uploads"
+    os.makedirs(temp_dir, exist_ok=True)
+
+    try:
         for file in files:
             file_path = os.path.join(temp_dir, file.filename)
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
-            file_paths.append(file_path)
-
+            
             if file.filename == "questions.txt":
-                questions_file = file_path
+                with open(file_path, "r") as f:
+                    questions_content = f.read()
+            else:
+                file_paths[file.filename] = file_path
         
-        if not questions_file:
-            return JSONResponse(content=ensure_eval_array(["questions.txt required"] * 4), status_code=400)
+        if not questions_content:
+            return JSONResponse(status_code=400, content={"error": "questions.txt is required"})
 
-        with open(questions_file, 'r', encoding='utf-8') as f:
-            q_text = f.read()
-
-        questions = parse_questions(q_text)
-        answers = answer_all_questions(questions, file_paths)
-        return JSONResponse(content=ensure_eval_array(answers))
-
-    except Exception as ex:
-        # Handle exceptions and return a consistent error format
-        return JSONResponse(content=ensure_eval_array([str(ex)] * 4), status_code=500)
+        # Get answers using the new, task-agnostic function
+        answers = answer_all_questions(questions_content, file_paths)
+        return JSONResponse(content=answers)
+    
     finally:
         # Clean up the temporary directory
-        if temp_dir:
-            shutil.rmtree(temp_dir)
+        shutil.rmtree(temp_dir)
