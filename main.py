@@ -1,21 +1,19 @@
-import pandas as pd
+import shutil
+import os
+import json
+from typing import List, Optional
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
-from typing import List
-import os
-import shutil
-import json
-
-# Import the new, more robust utils file
-from utils import answer_all_questions
+from utils import answer_all_questions # Assuming utils.py is in the same directory
 
 app = FastAPI()
 
-def parse_questions_from_file(file_content: bytes) -> str:
-    return file_content.decode('utf-8')
-
 @app.post("/api/")
-async def analyze_data(files: List[UploadFile] = File(...)):
+@app.post("/")
+async def analyze_data(files: List[UploadFile] = File(None)):
+    """
+    Analyzes data from uploaded files based on questions.txt.
+    """
     if not files:
         return JSONResponse(status_code=400, content={"error": "No files provided."})
 
@@ -43,4 +41,5 @@ async def analyze_data(files: List[UploadFile] = File(...)):
         return JSONResponse(content=answers)
     
     finally:
+        # Clean up the temporary directory
         shutil.rmtree(temp_dir)
