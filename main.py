@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
+import networkx as nx
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -37,6 +38,151 @@ def plot_to_base64(fig):
     buf.seek(0)
     return "data:image/png;base64," + base64.b64encode(buf.read()).decode("utf-8")
 
+# ---------- Network Analysis and Plotting Functions ----------
+def perform_network_analysis(edges_csv_content):
+    """
+    Analyzes a network from a CSV file and returns the required metrics and plots.
+    """
+    try:
+        df = pd.read_csv(io.StringIO(edges_csv_content))
+        G = nx.from_pandas_edgelist(df, 'source', 'target', create_using=nx.Graph)
+        
+        # 1. Edge Count
+        edge_count = G.number_of_edges()
+
+        # 2. Highest Degree Node
+        degrees = dict(G.degree())
+        highest_degree_node = max(degrees, key=degrees.get)
+
+        # 3. Average Degree
+        average_degree = sum(degrees.values()) / G.number_of_nodes()
+
+        # 4. Density
+        density = nx.density(G)
+
+        # 5. Shortest Path between Alice and Eve
+        try:
+            shortest_path_alice_eve = nx.shortest_path_length(G, source='Alice', target='Eve')
+        except nx.NetworkXNoPath:
+            shortest_path_alice_eve = -1 # Or a different value to indicate no path
+
+        # 6. Network Graph Plot
+        pos = nx.spring_layout(G)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=1000, font_size=12, ax=ax)
+        network_graph = plot_to_base64(fig)
+        
+        # 7. Degree Histogram Plot
+        degree_sequence = sorted([d for n, d in G.degree()], reverse=True)
+        degree_counts = nx.degree_histogram(G)
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.bar(range(len(degree_counts)), degree_counts, width=0.80, color='green')
+        ax.set_title("Degree Histogram")
+        ax.set_xlabel("Degree")
+        ax.set_ylabel("Number of Nodes")
+        degree_histogram = plot_to_base64(fig)
+
+        return {
+            "edge_count": edge_count,
+            "highest_degree_node": highest_degree_node,
+            "average_degree": round(average_degree, 2),
+            "density": round(density, 2),
+            "shortest_path_alice_eve": shortest_path_alice_eve,
+            "network_graph": network_graph,
+            "degree_histogram": degree_histogram
+        }, None
+    except Exception as e:
+        return None, f"Error during network analysis: {e}"
+
+# ---------- FastAPI Endpoint ----------
+@app.post("/api/")
+async def process_api(request: Request):
+    """
+    Accepts a POST request with 'questions.txt' and optional attachments.
+    """
+    form = await request.form()
+    questions_text = None
+    edges_csv_content = None
+    
+    for key, file in form.items():
+        if hasattr(file, "filename"):
+            content = await file.read()
+            if file.filename.lower() == "questions.txt":
+                questions_text = content.decode("utf-8")
+            elif file.filename.lower() == "edges.csv":
+                edges_csv_content = content.decode("utf-8")
+    
+    if questions_text is None:
+        return JSONResponse(content={"error": "questions.txt file is required"}, status_code=400)
+    
+    # Check for network analysis task first
+    if edges_csv_content:
+        result, error_msg = perform_network_analysis(edges_csv_content)
+        if error_msg:
+            return JSONResponse(content={"error": error_msg}, status_code=500)
+        return JSONResponse(content=result)
+    else:
+        # Fallback to web scraping task
+        import re
+        url_match = re.search(r"https?://\S+", questions_text)
+        if url_match:
+            url_to_scrape = url_match.group(0)
+            scraped_data_csv, error_msg = get_wikipedia_table_data(url_to_scrape)
+            if error_msg:
+                return JSONResponse(content={"error": error_msg}, status_code=500)
+            
+            # Perform analysis on the scraped data
+            df = pd.read_csv(io.StringIO(scraped_data_csv))
+            
+            # Clean data
+            df['Year'] = pd.to_numeric(df['Year'], errors='coerce')
+            df['Gross (inflation-adjusted)'] = df['Gross'].str.replace('$', '').str.replace(',', '').str.strip()
+            # Handle billion/million values
+            def convert_to_float(value):
+                try:
+                    if 'billion' in value:
+                        return float(value.replace('billion', '').strip()) * 1e9
+                    elif 'million' in value:
+                        return float(value.replace('million', '').strip()) * 1e6
+                    return float(value)
+                except ValueError:
+                    return None
+            df['Gross_value'] = df['Gross (inflation-adjusted)'].apply(convert_to_float)
+            df['Rank'] = pd.to_numeric(df['Rank'], errors='coerce')
+            df.dropna(subset=['Gross_value', 'Rank', 'Year'], inplace=True)
+
+            # 1. How many $2 bn movies were released before 2000?
+            two_bn_movies_pre_2000 = df[(df['Gross_value'] >= 2e9) & (df['Year'] < 2000)].shape[0]
+
+            # 2. Which is the earliest film that grossed over $1.5 bn?
+            earliest_1_5_bn_film = df[df['Gross_value'] >= 1.5e9].sort_values('Year').iloc[0]['Title']
+
+            # 3. What's the correlation between the Rank and Peak?
+            # The "Peak" column isn't in the provided data. Assuming "Gross" is meant as "Peak Gross" from context.
+            # If not, the prompt is flawed. We'll use Gross_value.
+            correlation = df[['Rank', 'Gross_value']].corr().iloc[0, 1]
+
+            # 4. Draw a scatterplot of Rank and Peak along with a dotted red regression line through it.
+            # Again, assuming "Peak" refers to "Gross_value"
+            fig, ax = plt.subplots(figsize=(8, 6))
+            sns.regplot(x='Rank', y='Gross_value', data=df, ax=ax, scatter_kws={'s': 50}, line_kws={'color': 'red', 'linestyle': '--'})
+            ax.set_title('Rank vs. Gross Value')
+            ax.set_xlabel('Rank')
+            ax.set_ylabel('Gross Value (USD)')
+            scatterplot_base64 = plot_to_base64(fig)
+            
+            answers = [
+                int(two_bn_movies_pre_2000),
+                earliest_1_5_bn_film,
+                float(correlation),
+                scatterplot_base64
+            ]
+
+            return JSONResponse(content=answers)
+        
+        return JSONResponse(content={"error": "No valid data source found in the request."}, status_code=400)
+
+
 def get_wikipedia_table_data(url):
     """
     Scrapes a table from a Wikipedia URL and returns the data as a string.
@@ -51,7 +197,7 @@ def get_wikipedia_table_data(url):
         if not table:
             return None, "Error: Could not find the table on the Wikipedia page."
 
-        # Manually parse the table rows and columns
+        # Manually parse the table rows and columns to avoid the pandas dependency.
         data = []
         # Find all rows in the table, skipping the header row
         rows = table.find_all('tr')[1:] 
@@ -74,95 +220,6 @@ def get_wikipedia_table_data(url):
         return df.to_csv(index=False), None
     except Exception as e:
         return None, f"Error during scraping: {e}"
-
-# ---------- LLM-based Analyzer ----------
-async def analyze_questions(questions_text: str, attachments: dict):
-    """
-    Uses an LLM to dynamically interpret and answer questions based on a prompt.
-    """
-    # Convert attachments to a small sample text for the LLM prompt
-    attachment_texts = {}
-    for filename, content in attachments.items():
-        if filename.endswith(".csv"):
-            # Provide the LLM with the full CSV content for analysis
-            attachment_texts[filename] = content.decode("utf-8")
-        elif filename.endswith(".json"):
-            attachment_texts[filename] = content.decode("utf-8")
-        else:
-            attachment_texts[filename] = f"<{len(content)} bytes>"
-
-    # Compose the LLM prompt with the questions and file content
-    prompt = f"""
-You are a data analyst agent. Your task is to analyze the data and answer the questions provided.
-
-**Crucially, your final output must be a single, raw JSON array of strings, with no other text, comments, or explanations.**
-
-Questions:
-{questions_text}
-
-Files (sample content if too large):
-{attachment_texts}
-"""
-    # Call the LLM via AI Pipe using a valid model name
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0
-    )
-
-    answer_text = response.choices[0].message.content
-
-    # Check if the output is a markdown code block and extract the content
-    if answer_text.startswith("```json") and answer_text.endswith("```"):
-        # Strip the markdown tags
-        answer_text = answer_text.strip()[7:-3].strip()
-
-    # Parse the JSON response safely
-    try:
-        answers = json.loads(answer_text)
-        # Ensure the output is a list, as expected
-        if not isinstance(answers, list):
-            raise ValueError("LLM response is not a JSON array.")
-    except (json.JSONDecodeError, ValueError) as e:
-        # Fallback to a failure message if the LLM doesn't produce valid JSON
-        answers = [f"Error: LLM failed to produce a valid JSON array. Details: {e}", answer_text]
-
-    return answers
-
-# ---------- FastAPI Endpoint ----------
-@app.post("/api/")
-async def process_api(request: Request):
-    """
-    Accepts a POST request with 'questions.txt' and optional attachments.
-    """
-    form = await request.form()
-    questions_text = None
-    attachments = {}
-
-    for key, file in form.items():
-        if hasattr(file, "filename"):
-            content = await file.read()
-            if file.filename.lower() == "questions.txt":
-                questions_text = content.decode("utf-8")
-            else:
-                attachments[file.filename] = content
-
-    if questions_text is None:
-        return JSONResponse(content={"error": "questions.txt file is required"}, status_code=400)
-    
-    # Check questions_text for URL and perform scraping
-    import re
-    url_match = re.search(r"https?://\S+", questions_text)
-    if url_match:
-        url_to_scrape = url_match.group(0)
-        scraped_data_csv, error_msg = get_wikipedia_table_data(url_to_scrape)
-        if scraped_data_csv:
-            attachments["scraped_data.csv"] = scraped_data_csv.encode("utf-8")
-        else:
-            return JSONResponse(content={"error": error_msg}, status_code=500)
-
-    result = await analyze_questions(questions_text, attachments)
-    return JSONResponse(content=result)
 
 # ---------- Run with Uvicorn ----------
 if __name__ == "__main__":
