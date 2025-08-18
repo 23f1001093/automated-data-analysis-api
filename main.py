@@ -6,6 +6,8 @@ import asyncio
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import requests
+from bs4 import BeautifulSoup
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from openai import OpenAI
@@ -35,15 +37,43 @@ def plot_to_base64(fig):
     buf.seek(0)
     return "data:image/png;base64," + base64.b64encode(buf.read()).decode("utf-8")
 
-def scatterplot_with_regression(x, y, xlabel="", ylabel=""):
-    """Creates a scatterplot with a regression line and returns it as a base64 string."""
-    sns.set_style("whitegrid")
-    fig, ax = plt.subplots()
-    sns.scatterplot(x=x, y=y, ax=ax)
-    sns.regplot(x=x, y=y, ax=ax, scatter=False, color="red", line_kws={"linestyle":"--"})
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    return plot_to_base64(fig)
+def get_wikipedia_table_data(url):
+    """
+    Scrapes a table from a Wikipedia URL and returns the data as a string.
+    This function manually parses the HTML to avoid dependencies like 'lxml'.
+    """
+    try:
+        response = requests.get(url)
+        response.raise_for_status() # Raise an exception for bad status codes
+        soup = BeautifulSoup(response.text, 'html.parser')
+        table = soup.find('table', {'class': 'wikitable'})
+        
+        if not table:
+            return None, "Error: Could not find the table on the Wikipedia page."
+
+        # Manually parse the table rows and columns
+        data = []
+        # Find all rows in the table, skipping the header row
+        rows = table.find_all('tr')[1:] 
+        for row in rows:
+            cols = row.find_all(['th', 'td'])
+            # Ensure the row has enough columns before processing
+            if len(cols) > 3:
+                try:
+                    rank = cols[0].get_text().strip().replace('–', '')
+                    title = cols[1].get_text().strip()
+                    year = cols[2].get_text().strip().split('[')[0]
+                    gross = cols[3].get_text().strip()
+                    data.append([rank, title, year, gross])
+                except (ValueError, IndexError):
+                    # Skip malformed rows
+                    continue
+
+        headers = ['Rank', 'Title', 'Year', 'Gross']
+        df = pd.DataFrame(data, columns=headers)
+        return df.to_csv(index=False), None
+    except Exception as e:
+        return None, f"Error during scraping: {e}"
 
 # ---------- LLM-based Analyzer ----------
 async def analyze_questions(questions_text: str, attachments: dict):
@@ -54,8 +84,8 @@ async def analyze_questions(questions_text: str, attachments: dict):
     attachment_texts = {}
     for filename, content in attachments.items():
         if filename.endswith(".csv"):
-            df = pd.read_csv(io.BytesIO(content))
-            attachment_texts[filename] = df.head(50).to_csv(index=False)
+            # Provide the LLM with the full CSV content for analysis
+            attachment_texts[filename] = content.decode("utf-8")
         elif filename.endswith(".json"):
             attachment_texts[filename] = content.decode("utf-8")
         else:
@@ -63,33 +93,39 @@ async def analyze_questions(questions_text: str, attachments: dict):
 
     # Compose the LLM prompt with the questions and file content
     prompt = f"""
-You are a data analyst agent. Answer the questions below using Python, pandas, matplotlib/seaborn.
-Do not hardcode anything; interpret the data dynamically.
+You are a data analyst agent. Your task is to analyze the data and answer the questions provided.
+
+**Crucially, your final output must be a single, raw JSON array of strings, with no other text, comments, or explanations.**
+
 Questions:
 {questions_text}
 
 Files (sample content if too large):
 {attachment_texts}
-
-Instructions:
-- Return a JSON array of answers in order.
-- If a plot is required, return it as a base64 PNG under 100,000 bytes.
-- Only return the JSON array as output.
 """
     # Call the LLM via AI Pipe using a valid model name
     response = client.chat.completions.create(
-        model="gpt-4o-mini",  # Changed to a valid, supported model
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=0
     )
 
     answer_text = response.choices[0].message.content
 
-    # Parse the LLM's JSON response safely
+    # Check if the output is a markdown code block and extract the content
+    if answer_text.startswith("```json") and answer_text.endswith("```"):
+        # Strip the markdown tags
+        answer_text = answer_text.strip()[7:-3].strip()
+
+    # Parse the JSON response safely
     try:
         answers = json.loads(answer_text)
-    except Exception:
-        answers = [answer_text]
+        # Ensure the output is a list, as expected
+        if not isinstance(answers, list):
+            raise ValueError("LLM response is not a JSON array.")
+    except (json.JSONDecodeError, ValueError) as e:
+        # Fallback to a failure message if the LLM doesn't produce valid JSON
+        answers = [f"Error: LLM failed to produce a valid JSON array. Details: {e}", answer_text]
 
     return answers
 
@@ -113,6 +149,17 @@ async def process_api(request: Request):
 
     if questions_text is None:
         return JSONResponse(content={"error": "questions.txt file is required"}, status_code=400)
+    
+    # Check questions_text for URL and perform scraping
+    import re
+    url_match = re.search(r"https?://\S+", questions_text)
+    if url_match:
+        url_to_scrape = url_match.group(0)
+        scraped_data_csv, error_msg = get_wikipedia_table_data(url_to_scrape)
+        if scraped_data_csv:
+            attachments["scraped_data.csv"] = scraped_data_csv.encode("utf-8")
+        else:
+            return JSONResponse(content={"error": error_msg}, status_code=500)
 
     result = await analyze_questions(questions_text, attachments)
     return JSONResponse(content=result)
