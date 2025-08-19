@@ -1,0 +1,17 @@
+2025-08-19 15:44:51,449 [INFO] Step-1: Folder created: uploads/337c716c-c00e-4784-ac12-a8190978b00b
+2025-08-19 15:44:51,453 [INFO] Using Python executable: venv/bin/python3
+2025-08-19 15:44:51,453 [INFO] Step-2: File sent {'question.txt': 'uploads/337c716c-c00e-4784-ac12-a8190978b00b/question.txt'}
+2025-08-19 15:44:51,453 [INFO] 🤖 Step-1: Getting scrap code and metadata from llm. Tries count = 0
+2025-08-19 15:45:10,902 [INFO] 🤖 Step-1: Successfully parsed response from LLM.
+2025-08-19 15:45:10,903 [INFO] 💻 Step-3: Entering loop
+2025-08-19 15:45:10,903 [INFO] 💻 Loop-1: Running LLM code.
+2025-08-19 15:45:12,530 [INFO] ✅💻 Loop-1: Code executed successfully.
+2025-08-19 15:45:12,530 [INFO] 🤖 Loop-1: Inside Loop LLM call.
+2025-08-19 15:45:44,049 [INFO] 💻 Loop-2: Running LLM code.
+2025-08-19 15:45:48,162 [INFO] ✅💻 Loop-2: Code executed successfully.
+2025-08-19 15:45:48,162 [INFO] ✅📁 Loop-2: Found result files.
+2025-08-19 15:45:48,163 [INFO] 🤖 Loop-2: Checking result validity.
+2025-08-19 15:45:58,955 [INFO] ✅ Loop-2: Validation successful, no re-run needed.
+2025-08-19 15:45:58,956 [INFO] 💻 Step-6: Running final code.
+2025-08-19 15:45:59,013 [INFO] 📁 Step-7: Reading result.json
+2025-08-19 15:45:59,013 [INFO] ✅📁 Step-7: send result back

@@ -1,0 +1,9 @@
+Analyze the sales data in the provided image 'sales_chart.png'. It includes a table of sales amounts and volumes by salesperson, along with a corresponding bar and line chart.
+
+Answer the following questions and respond with a JSON array of strings containing the answer.
+
+1. How many salespeople have a sales amount over $500?
+2. Which salesperson has the highest sales volume?
+3. What's the correlation between the sales amount and sales volume?
+4. Draw a scatterplot of sales amount (x-axis) and sales volume (y-axis) along with a dotted red regression line through it.
+   Return as a base-64 encoded data URI, `"data:image/png;base64,iVBORw0KG..."` under 100,000 bytes.
