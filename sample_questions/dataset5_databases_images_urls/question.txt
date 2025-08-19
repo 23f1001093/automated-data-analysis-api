@@ -1,0 +1,48 @@
+DATA_SOURCES:
+- Database: product_catalog.db
+- Image: product_image.png (product label)
+- URL: Wikipedia best-selling books(https://en.wikipedia.org/wiki/List_of_best-selling_books)
+
+ANSWER_FORMAT:
+{
+  "product_name": "...",
+  "db_info": {...},
+  "wiki_top_books": [...]
+}
+
+QUESTIONS:
+1. From product_image.png, extract product name.
+2. Look up this product in product_catalog.db and return full details.
+3. From the Wikipedia URL, return the top 3 best-selling books.
+
+USER_PROMPT = f"""
+You are generating Python code that solves the given problem in multiple incremental steps.
+
+Rules:
+- You can read {folder}/metadata.txt if it exists.And pass its info to you llm call.
+- Store any new insights into {folder}/metadata.txt (append).
+- After each partial step, raise StepIncompleteError to continue the loop.
+- Only store the final answer in {folder}/result.txt.
+
+- External libraries must be listed; built-ins should not be listed.
+- If an error occurs, raise StepIncompleteError so the controlling loop can retry or continue.
+- Use the provided Gemini API key when additional reasoning or code generation is needed mid-process.
+
+Your process:
+1. Read any available metadata from metadata.txt.
+2. Execute one logical step toward the solution.
+3. Save findings to metadata.txt.
+4. Raise StepIncompleteError until the final step is reached.
+5. On the last step, store the result in result.txt and set is_correct = true.
+
+This task will be run without human interaction; your code must handle data retrieval, LLM calls, and file operations automatically.
+"""
+
+- Always return valid JSON:
+  {{
+      "code": "<python_code_here>",
+      "libraries": ["list", "of", "external_libraries"],
+      "is_correct": true_or_false
+  }}
+
+for image processing use python and don't use gemini vision model it is not working
