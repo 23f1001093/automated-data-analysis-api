@@ -1,0 +1,14 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "text: \"<question>Analyze `sample-weather.csv`.\\n\\nReturn a JSON object with keys:\\n- `average_temp_c`: number\\n- `max_precip_date`: string\\n- `min_temp_c`: number\\n- `temp_precip_correlation`: number\\n- `average_precip_mm`: number\\n- `temp_line_chart`: base64 PNG string under 100kB\\n- `precip_histogram`: base64 PNG string under 100kB\\n\\nAnswer:\\n1. What is the average temperature in Celsius?\\n2. On which date was precipitation highest?\\n3. What is the minimum temperature recorded?\\n4. What is the correlation between temperature and precipitation?\\n5. What is the average precipitation in millimeters?\\n6. Plot temperature over time as a line chart with a red line. Encode as base64 PNG.\\n7. Plot precipitation as a histogram with orange bars. Encode as base64 PNG.\\n</question>\"\n"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "text: \"{\\\"code\\\": \\\"# Import necessary libraries\\\\nimport pandas as pd\\\\n\\\\n# Load the dataframe\\\\ndf = pd.read_csv(\\'sample-weather.csv\\')\\\\n\\\\n# Open metadata.txt in append mode\\\\nwith open(\\'metadata.txt\\', \\'a\\') as f:\\\\n    # Write column names\\\\n    f.write(str(df.columns) + \\'\\\\\\\\n\\')\\\\n    # Write the first 3 rows\\\\n    f.write(str(df.head(3)) + \\'\\\\\\\\n\\')\\\", \\\"libraries\\\": [\\\"pandas\\\"], \\\"run_this\\\": 1}\"\n"
+    ]
+  }
+]

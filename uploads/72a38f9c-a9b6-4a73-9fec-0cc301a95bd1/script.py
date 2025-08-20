@@ -51,16 +51,16 @@ plt.savefig(precip_hist, format='png')
 precip_hist_b64 = base64.b64encode(precip_hist.getvalue()).decode('utf-8')
 plt.close('all')
 
-
 # Create and save the result dictionary.
 result = {
-    "average_temp_c": avg_temp,
-    "max_precip_date": max_precip_date,
-    "min_temp_c": min_temp,
-    "temp_precip_correlation": correlation,
-    "average_precip_mm": avg_precip,
+    "average_temp_c": float(avg_temp),
+    "max_precip_date": str(max_precip_date),
+    "min_temp_c": float(min_temp),
+    "temp_precip_correlation": float(correlation),
+    "average_precip_mm": float(avg_precip),
     "temp_line_chart": temp_chart_b64,
     "precip_histogram": precip_hist_b64
 }
+
 with open('result.json', 'w') as f:
     json.dump(result, f)

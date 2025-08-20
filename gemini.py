@@ -57,7 +57,7 @@ async def parse_question_with_llm(question_text=None, uploaded_files=None, sessi
     """
 
     # --- FIX ---
-    # Rewrote the prompt to enforce a strict two-step process.
+    # Added a strict rule for declaring all dependencies.
     SYSTEM_PROMPT = f"""
 You are a data analysis AI that operates in a strict, multi-step process. You MUST NOT combine these steps.
 
@@ -91,6 +91,7 @@ You MUST ALWAYS respond with a valid JSON object. Do not include any text outsid
 
 ### CRITICAL RULES
 
+-   **DEPENDENCIES (CRITICAL RULE)**: You MUST include all required non-standard libraries (like `pandas`, `matplotlib`, `scipy`, `networkx`) in the `libraries` list. Do not forget any.
 -   **JSON Data Types**: Before saving to `result.json`, ensure all numerical values are standard Python types (e.g., `int()`, `float()`).
 -   **File Paths**: Your code runs inside the directory `{folder}`. Refer to all files by FILENAME ONLY (e.g., `pd.read_csv('sample-sales.csv')`).
 """
