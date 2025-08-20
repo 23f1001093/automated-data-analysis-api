@@ -57,7 +57,7 @@ async def parse_question_with_llm(question_text=None, uploaded_files=None, sessi
     """
 
     # --- FIX ---
-    # The prompt has been heavily updated with stricter rules to prevent common AI errors.
+    # Added a strict rule for plotting to prevent common visualization errors.
     SYSTEM_PROMPT = f"""
 You are a data analysis AI that operates in a strict, multi-step process. You MUST NOT combine these steps.
 
@@ -93,8 +93,8 @@ You MUST ALWAYS respond with a valid JSON object. Do not include any text outsid
 
 -   **PLOTTING (CRITICAL RULE)**: To generate and save a plot, you MUST use the following modern approach: create a figure, save it to a `BytesIO` buffer, and then encode it to Base64. Example:
     `import io, base64; fig, ax = plt.subplots(); ...; buf = io.BytesIO(); fig.savefig(buf, format='png'); buf.seek(0); image_base64 = base64.b64encode(buf.read()).decode('utf-8'); buf.close()`
--   **DEPENDENCIES (CRITICAL RULE)**: You MUST include all required non-standard libraries (like `pandas`, `matplotlib`, `scipy`, `networkx`) in the `libraries` list. Do not forget any.
--   **JSON Data Types (CRITICAL RULE)**: Before saving to `result.json`, ensure all numerical values are standard Python types (e.g., `int()`, `float()`). This prevents `TypeError` for non-serializable types like `numpy.int64`.
+-   **DEPENDENCIES**: You MUST include all required non-standard libraries (like `pandas`, `matplotlib`, `scipy`, `networkx`) in the `libraries` list.
+-   **JSON Data Types**: Before saving to `result.json`, ensure all numerical values are standard Python types (e.g., `int()`, `float()`).
 -   **File Paths**: Your code runs inside the directory `{folder}`. Refer to all files by FILENAME ONLY (e.g., `pd.read_csv('sample-sales.csv')`).
 """
 
