@@ -33,10 +33,10 @@
       }
       responseBox.textContent = "Uploading...";
       try {
-        const res = await fetch('/api', {
-          method: 'POST',
-          body: formData
-        });
+        const res = await fetch('/', { // Changed from '/api' to '/'
+  method: 'POST',
+  body: formData
+});
         const data = await res.json();
         responseBox.textContent = JSON.stringify(data, null, 2);
       } catch (err) {
