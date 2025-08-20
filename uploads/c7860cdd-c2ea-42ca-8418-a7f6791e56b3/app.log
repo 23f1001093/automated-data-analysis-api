@@ -1,0 +1,8 @@
+2025-08-20 19:20:41,553 [INFO] Step-1: Folder created: uploads/c7860cdd-c2ea-42ca-8418-a7f6791e56b3
+2025-08-20 19:20:41,555 [INFO] Using Python executable: venv/bin/python3
+2025-08-20 19:20:41,556 [INFO] 🤖 Step-1: Getting initial code from LLM. Attempt 1
+2025-08-20 19:20:57,739 [INFO] 🤖 Step-1: Successfully parsed response from LLM.
+2025-08-20 19:20:57,739 [INFO] 💻 Loop-1: Running LLM-generated code.
+2025-08-20 19:20:58,327 [ERROR] ❌💻 Loop-1: Code execution failed: Mock execution failed: [Errno 2] No such file or directory: 'sample-sales.csv'
+2025-08-20 19:20:58,328 [INFO] 🤖 Loop-1: Getting next step from LLM. Attempt 1
+2025-08-20 19:21:06,710 [INFO] 💻 Loop-2: Running LLM-generated code.

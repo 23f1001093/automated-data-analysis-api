@@ -38,7 +38,9 @@ export NGROK_AUTHTOKEN=$NGROK_AUTHTOKEN
 # ================= INSTALL REQUIREMENTS (First time only) =================
 if [ ! -f ".deps_installed" ]; then
     echo "Installing dependencies from requirements.txt (first time only)..."
-    pip install -r requirements.txt
+    # --- FIX ---
+    # Install watchfiles to enable the --reload-exclude feature
+    pip install -r requirements.txt watchfiles
     touch .deps_installed
 else
     echo "Dependencies already installed. Skipping pip install."
@@ -68,7 +70,8 @@ fi
 
 # ================= START UVICORN =================
 echo "Starting uvicorn server..."
-uvicorn $APP_TARGET --reload --host 0.0.0.0 --port 8000 &
+# Using single quotes for --reload-exclude makes the pattern more robust
+uvicorn $APP_TARGET --reload --host 0.0.0.0 --port 8000 --reload-exclude 'uploads/*' &
 UVICORN_PID=$!
 
 # Trap Ctrl+C to stop uvicorn too
@@ -84,4 +87,5 @@ echo -e "\nServer should be ready now."
 
 # ================= START NGROK (FOREGROUND) =================
 echo "Starting ngrok tunnel on port 8000..."
-$NGROK_BIN  http --url=next-feasible-mastodon.ngrok-free.app 8000
+# Use a dynamic URL for ngrok for better reliability
+$NGROK_BIN http 8000

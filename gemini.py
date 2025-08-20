@@ -5,7 +5,7 @@ from api_key_rotator import get_api_key
 import re
 
 
-MODEL_NAME = "gemini-2.5-pro"
+MODEL_NAME = "gemini-1.5-pro-latest"
 
 # Give response in JSON format
 generation_config = genai.types.GenerationConfig(
@@ -14,17 +14,16 @@ generation_config = genai.types.GenerationConfig(
 
 
 async def send_with_rotation(prompt, session_id, system_prompt):
+    """Sends a prompt to the Gemini API, handling API key rotation and retries."""
     while True:
         try:
             api_key = get_api_key(auto_wait=True)
             genai.configure(api_key=api_key)
 
             chat = await get_chat_session(parse_chat_sessions, session_id, system_prompt)
+            
             response = chat.send_message(prompt)
-
-            #if '"finish_reason": "STOP"' in str(response):
-            #   print("Response finished with STOP")
-            #   continue           
+          
             return response
 
         except Exception as e:
@@ -32,119 +31,101 @@ async def send_with_rotation(prompt, session_id, system_prompt):
             continue
 
 
-# Store chat sessions for both parsing and answering
+# In-memory dictionary to store active chat sessions
 parse_chat_sessions = {}
 
-# Get or create a persistent chat session for a given session_id.
+
 async def get_chat_session(sessions_dict, session_id, system_prompt, model_name=MODEL_NAME):
+    """
+    Retrieves an existing chat session or creates a new one if it doesn't exist.
+    """
     if session_id not in sessions_dict:
+        print(f"Creating new chat session for ID: {session_id}")
         model = genai.GenerativeModel(
             model_name=model_name,
-            generation_config=generation_config,   # defaults for the whole chat
-            system_instruction=system_prompt       # put your system prompt here
-        )        
+            generation_config=generation_config,
+            system_instruction=system_prompt
+        )
         chat = model.start_chat(history=[])
-        sessions_dict[session_id] = chat    
+        sessions_dict[session_id] = chat
     return sessions_dict[session_id]
 
-# ------------------------
-# PARSE QUESTION FUNCTION
-# ------------------------
+
 async def parse_question_with_llm(question_text=None, uploaded_files=None, session_id="default_parse", retry_message=None, folder="uploads"):
     """
-    Parse question with persistent chat session.
-    - If retry_message is provided, sends only that to continue conversation.
+    Parses a user's question using the LLM with a persistent chat session.
     """
 
+    # --- FIX ---
+    # Made the file path instruction extremely explicit to prevent errors.
     SYSTEM_PROMPT = f"""
-You are an AI Python code generator for multi-step data analysis and processing.
+You are a highly intelligent AI assistant that specializes in generating Python code for data analysis. Your primary goal is to answer user questions by creating and executing a multi-step analysis plan.
 
-## Core Behavior
-1. Break every problem into sequential steps.
-2. After each step:
-   - Save all intermediate findings, extracted data, or context to {folder}/metadata.txt (append mode).
-3. Save only the final verified answer in {folder}/result.txt (or {folder}/result.json if a structured format is requested).
+### CORE WORKFLOW
 
-## Resources
-- Primary LLM: Google Gemini
-- API Key: {"AIzaSyBxddEHeeSs8ovD4thaYLkA5tk1fo1zxFE"}
-- Working Folder: {folder}
+1.  **Analyze the Request**: Understand the user's question and the data sources provided.
+2.  **Step 1: Initial Data Exploration**: Generate Python code to perform a basic exploration of the data source and append your findings to a file named `metadata.txt`.
+3.  **Step 2: Generate Analysis Code**: Using context from `metadata.txt` and the original question, generate the complete Python code to perform the full analysis.
+4.  **Step 3: Validation and Correction**: If I provide you with an error message, you must debug it and provide the corrected code.
 
-## Capabilities
-- Fetch & parse data from: URLs (HTML, JSON, CSV, APIs), databases, and local files (CSV, Excel, PDF, images, text, JSON).
-- Scrape websites and summarize findings.
-- Execute Python code for data processing, visualization, or querying.
-- Programmatically call the Gemini API (with provided key).
-- Save all intermediate and final outputs in the working folder.
+### OUTPUT FORMAT
 
-## Execution Rules
-1. Always return **valid JSON** in this format:
-   {{
-       "code": "<python_code_that_can_run_in_python_REPL>",
-       "libraries": ["list", "of", "external_libraries"],
-       "run_this": 1 or 0
-   }}
-   - `run_this=1` → I should execute this code immediately and return you the output.  
-   - `run_this=0` → No execution needed (final verified code or step complete).  
-2. Do **not** return explanations — JSON only.  
-3. If an error occurs and I provide you the error message, return **corrected code** only. If repeated errors occur, generate fresh new code.  
-4. The **final step** must always save the definitive answer in {folder}/result.txt (or {folder}/result.json if applicable).  
+You MUST ALWAYS respond with a valid JSON object in the following structure. Do NOT include any explanations or text outside of the JSON structure.
 
-## Notes
-- Always prefer incremental steps.  
-- Append **only necessary information** to {folder}/metadata.txt to minimize token usage.  
-- Use pip-installable names for external libraries. Built-ins should not be listed.
-- For image processing, use Python libraries or other gemini model that is working.
-- Do not generate random data after a single attempt. Instead, if the first approach fails, try solving the problem again using the provided data but with a different method.  
-- All the uploaded files will be in the folder {folder}. You can access them like this {folder}/filename.
+{{
+    "code": "<python_code_to_execute>",
+    "libraries": ["list", "of", "pip-installable", "libraries"],
+    "run_this": 1
+}}
+
+### RULES & CONSTRAINTS
+
+-   **FILE PATHS (CRITICAL RULE)**: Your code will be executed inside the working directory `{folder}`. YOU MUST refer to all files using their FILENAME ONLY.
+    -   **CORRECT**: `pd.read_csv('sample-sales.csv')`
+    -   **INCORRECT**: `pd.read_csv('{folder}/sample-sales.csv')`
+    -   **INCORRECT**: `pd.read_csv('uploads/some_id/sample-sales.csv')`
+-   **Final Answer**: The final output of your analysis must always be written to `result.json`.
+-   **Imports**: Always include all necessary imports (like `json`, `pandas`) in your generated code.
 """
 
-
-
-    chat =await get_chat_session(parse_chat_sessions, session_id, SYSTEM_PROMPT)
+    chat = await get_chat_session(parse_chat_sessions, session_id, SYSTEM_PROMPT)
 
     if retry_message:
-        # Only send error/retry message
         prompt = retry_message
     else:
         prompt = question_text
-    
-    # Path to the file
+
     file_path = os.path.join(folder, "metadata.txt")
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     if not os.path.exists(file_path):
         with open(file_path, "w") as f:
             f.write("")
 
-
-
-    # Access chat history
-    # Example: Save to JSON   
-
     history_data = []
     for msg in chat.history:
         history_data.append({
             "role": msg.role,
-            "parts": [str(p) for p in msg.parts]  # convert parts to string
+            "parts": [str(p) for p in msg.parts]
         })
     chat_history_path = os.path.join(folder, "chat_history.json")
     with open(chat_history_path, "w") as f:
         json.dump(history_data, f, indent=2)
-    
-    # Sending response
-    response =await send_with_rotation(prompt, session_id, SYSTEM_PROMPT)
 
+    response = await send_with_rotation(prompt, session_id, SYSTEM_PROMPT)
+
+    if not response.candidates or not response.candidates[0].content or not response.candidates[0].content.parts:
+        print("⚠️(gemini.py) LLM returned a response with no content part.")
+        return {"error": "LLM returned no content."}
+        
     try:
         return json.loads(response.text)
-    except:
-        # Try to extract the first {...} JSON block
-        match = re.search(r'\{.*\}', response.text, re.S)
+    except Exception as e:
+        print(f"⚠️(gemini.py) Failed to parse response as JSON: {e}")
+        match = re.search(r'\{.*\}', response.text, re.DOTALL)
         if match:
             try:
                 return json.loads(match.group(0))
-            except:
+            except json.JSONDecodeError:
                 pass
-        print("⚠️(gemini.py) Failed to parse response as JSON, returning raw text")
-        return response.text
-
-    
+        
+        return {"error": "Failed to parse JSON from LLM response."}
