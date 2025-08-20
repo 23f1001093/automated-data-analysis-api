@@ -56,7 +56,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # This endpoint is no longer needed for the evaluation but is good for your own testing
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend():
+    if os.path.exists("frontend.html"):
+        with open("frontend.html", "r") as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    return HTMLResponse(content="<h1>Frontend file not found</h1>")
+
 
 
 UPLOAD_DIR = "uploads"
