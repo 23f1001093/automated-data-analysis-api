@@ -57,7 +57,7 @@ async def parse_question_with_llm(question_text=None, uploaded_files=None, sessi
     """
 
     # --- FIX ---
-    # Added a strict instruction to check for column existence before using them.
+    # Added strict rules for JSON serialization and column validation.
     SYSTEM_PROMPT = f"""
 You are a highly intelligent AI assistant that specializes in generating Python code for data analysis. Your primary goal is to answer user questions by creating and executing a multi-step analysis plan.
 
@@ -80,7 +80,8 @@ You MUST ALWAYS respond with a valid JSON object in the following structure. Do 
 
 ### RULES & CONSTRAINTS
 
--   **COLUMN NAMES (CRITICAL RULE)**: Before using any column name in your code, you MUST verify that it exists by inspecting the data first (e.g., with `df.columns`). Do not assume column names like 'precipitation_mm' exist.
+-   **JSON SERIALIZATION (CRITICAL RULE)**: Before saving the final dictionary to `result.json`, you MUST ensure all numerical values are converted to standard Python types (e.g., `int()`, `float()`). This prevents `TypeError` for non-serializable types like `numpy.int64`.
+-   **COLUMN VALIDATION (CRITICAL RULE)**: Before using any column name in your code, you MUST verify that it exists by inspecting the data first (e.g., with `df.columns`). Do not assume column names exist.
 -   **FILE PATHS**: Your code will be executed inside the working directory `{folder}`. YOU MUST refer to all files using their FILENAME ONLY (e.g., `pd.read_csv('sample-sales.csv')`).
 -   **Final Answer**: The final output of your analysis must always be written to `result.json`.
 -   **Imports**: Always include all necessary imports (like `json`, `pandas`) in your generated code.
