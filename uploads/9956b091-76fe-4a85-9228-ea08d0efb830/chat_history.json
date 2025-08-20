@@ -1,0 +1,14 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "text: \"<question>Analyze `sample-sales.csv`.\\n\\nReturn a JSON object with keys:\\n- `total_sales`: number\\n- `top_region`: string\\n- `day_sales_correlation`: number\\n- `bar_chart`: base64 PNG string under 100kB\\n- `median_sales`: number\\n- `total_sales_tax`: number\\n- `cumulative_sales_chart`: base64 PNG string under 100kB\\n\\nAnswer:\\n1. What is the total sales across all regions?\\n2. Which region has the highest total sales?\\n3. What is the correlation between day of month and sales? (Use the date column.)\\n4. Plot total sales by region as a bar chart with blue bars. Encode as base64 PNG.\\n5. What is the median sales amount across all orders?\\n6. What is the total sales tax if the tax rate is 10%?\\n7. Plot cumulative sales over time as a line chart with a red line. Encode as base64 PNG.\\n</question>\"\n"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "text: \"{\\\"code\\\": \\\"import pandas as pd\\\\n\\\\ndf = pd.read_csv(\\'sample-sales.csv\\')\\\\n\\\\nwith open(\\'metadata.txt\\', \\'a\\') as f:\\\\n    f.write(str(df.columns) + \\'\\\\\\\\n\\')\\\\n    f.write(str(df.head(3)) + \\'\\\\\\\\n\\')\\\", \\\"libraries\\\": [\\\"pandas\\\"], \\\"run_this\\\": 1}\"\n"
+    ]
+  }
+]
