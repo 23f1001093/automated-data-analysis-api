@@ -57,20 +57,31 @@ async def parse_question_with_llm(question_text=None, uploaded_files=None, sessi
     """
 
     # --- FIX ---
-    # Added strict rules for JSON serialization and column validation.
+    # Rewrote the prompt to enforce a strict two-step process.
     SYSTEM_PROMPT = f"""
-You are a highly intelligent AI assistant that specializes in generating Python code for data analysis. Your primary goal is to answer user questions by creating and executing a multi-step analysis plan.
+You are a data analysis AI that operates in a strict, multi-step process. You MUST NOT combine these steps.
 
-### CORE WORKFLOW
+### STEP 1: DATA EXPLORATION
 
-1.  **Analyze the Request**: Understand the user's question and the data sources provided.
-2.  **Step 1: Initial Data Exploration**: Your first step is ALWAYS to generate code that inspects the dataset. For CSVs, this means loading it into a pandas DataFrame and printing the column names (`df.columns`) and the first few rows (`df.head()`). Append these findings to `metadata.txt`.
-3.  **Step 2: Generate Analysis Code**: Using the verified column names from `metadata.txt`, generate the complete Python code to perform the full analysis.
-4.  **Step 3: Validation and Correction**: If I provide you with an error message, you must debug it and provide the corrected code.
+When you receive the user's initial question, your ONLY task is to generate Python code that does the following:
+1.  Imports pandas.
+2.  Loads the user-provided data file (e.g., 'sample-sales.csv') into a DataFrame.
+3.  Opens a file named `metadata.txt` in append mode.
+4.  Writes the DataFrame's column names (`df.columns`) and the first 3 rows (`df.head(3)`) to `metadata.txt`.
+
+The code you generate for this first step MUST NOT perform any other calculations, analysis, or visualization.
+
+### STEP 2: ANALYSIS & VISUALIZATION
+
+After I execute the exploration code, I will send you a new prompt containing the contents of `metadata.txt`. Only then will you perform the following:
+1.  Analyze the metadata to understand the data's structure.
+2.  Generate a NEW, complete Python script that performs all the required calculations and visualizations to answer the user's original question.
+3.  You MUST use the exact column names found in the metadata.
+4.  The final dictionary of results MUST be saved to `result.json`.
 
 ### OUTPUT FORMAT
 
-You MUST ALWAYS respond with a valid JSON object in the following structure. Do NOT include any explanations or text outside of the JSON structure.
+You MUST ALWAYS respond with a valid JSON object. Do not include any text outside of the JSON structure.
 
 {{
     "code": "<python_code_to_execute>",
@@ -78,13 +89,10 @@ You MUST ALWAYS respond with a valid JSON object in the following structure. Do 
     "run_this": 1
 }}
 
-### RULES & CONSTRAINTS
+### CRITICAL RULES
 
--   **JSON SERIALIZATION (CRITICAL RULE)**: Before saving the final dictionary to `result.json`, you MUST ensure all numerical values are converted to standard Python types (e.g., `int()`, `float()`). This prevents `TypeError` for non-serializable types like `numpy.int64`.
--   **COLUMN VALIDATION (CRITICAL RULE)**: Before using any column name in your code, you MUST verify that it exists by inspecting the data first (e.g., with `df.columns`). Do not assume column names exist.
--   **FILE PATHS**: Your code will be executed inside the working directory `{folder}`. YOU MUST refer to all files using their FILENAME ONLY (e.g., `pd.read_csv('sample-sales.csv')`).
--   **Final Answer**: The final output of your analysis must always be written to `result.json`.
--   **Imports**: Always include all necessary imports (like `json`, `pandas`) in your generated code.
+-   **JSON Data Types**: Before saving to `result.json`, ensure all numerical values are standard Python types (e.g., `int()`, `float()`).
+-   **File Paths**: Your code runs inside the directory `{folder}`. Refer to all files by FILENAME ONLY (e.g., `pd.read_csv('sample-sales.csv')`).
 """
 
     chat = await get_chat_session(parse_chat_sessions, session_id, SYSTEM_PROMPT)
