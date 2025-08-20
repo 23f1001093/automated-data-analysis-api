@@ -1,0 +1,71 @@
+2025-08-20 19:18:53,771 [INFO] Step-1: Folder created: uploads/9b9ed9db-f930-4d5d-b21e-f8c571782e7c
+2025-08-20 19:18:53,773 [INFO] Using Python executable: venv1/bin/python3
+2025-08-20 19:18:53,773 [INFO] 🤖 Step-1: Getting scrap code and metadata from llm. Tries count = 0
+2025-08-20 19:18:53,774 [ERROR] ❌🤖 Step-1: Error in parsing the result. ⚠️ The previous response was not valid JSON.
+Your task: Fix the issue and return a STRICTLY valid JSON object.
+Do not include explanations, text, or comments — only JSON.
+
+Error details (last 100 words):
+<error>[Errno 5] Input/output error</error>
+
+Expected JSON format:
+{
+   "code": "<python_code_here_to_run_in_REPL>",
+   "libraries": ["list", "of", "external_libraries"],
+   "run_this": 0 or 1
+}
+2025-08-20 19:18:53,774 [INFO] 🤖 Step-1: Getting scrap code and metadata from llm. Tries count = 1
+2025-08-20 19:18:53,774 [INFO] 🤖 Step-1: Retrying with error message: ⚠️ The previous response was not valid JSON.
+Your task: Fix the issue and return a STRICTLY valid JSON object.
+Do not include explanations, text, or comments — only JSON.
+
+Error details (last 100 words):
+<error>[Errno 5] Input/output error</error>
+
+Expected JSON format:
+{
+   "code": "<python_code_here_to_run_in_REPL>",
+   "libraries": ["list", "of", "external_libraries"],
+   "run_this": 0 or 1
+}
+2025-08-20 19:18:53,774 [ERROR] ❌🤖 Step-1: Error in parsing the result. ⚠️ The previous response was not valid JSON.
+Your task: Fix the issue and return a STRICTLY valid JSON object.
+Do not include explanations, text, or comments — only JSON.
+
+Error details (last 100 words):
+<error>[Errno 5] Input/output error</error>
+
+Expected JSON format:
+{
+   "code": "<python_code_here_to_run_in_REPL>",
+   "libraries": ["list", "of", "external_libraries"],
+   "run_this": 0 or 1
+}
+2025-08-20 19:18:53,774 [INFO] 🤖 Step-1: Getting scrap code and metadata from llm. Tries count = 2
+2025-08-20 19:18:53,774 [INFO] 🤖 Step-1: Retrying with error message: ⚠️ The previous response was not valid JSON.
+Your task: Fix the issue and return a STRICTLY valid JSON object.
+Do not include explanations, text, or comments — only JSON.
+
+Error details (last 100 words):
+<error>[Errno 5] Input/output error</error>
+
+Expected JSON format:
+{
+   "code": "<python_code_here_to_run_in_REPL>",
+   "libraries": ["list", "of", "external_libraries"],
+   "run_this": 0 or 1
+}
+2025-08-20 19:18:53,774 [ERROR] ❌🤖 Step-1: Error in parsing the result. ⚠️ The previous response was not valid JSON.
+Your task: Fix the issue and return a STRICTLY valid JSON object.
+Do not include explanations, text, or comments — only JSON.
+
+Error details (last 100 words):
+<error>[Errno 5] Input/output error</error>
+
+Expected JSON format:
+{
+   "code": "<python_code_here_to_run_in_REPL>",
+   "libraries": ["list", "of", "external_libraries"],
+   "run_this": 0 or 1
+}
+2025-08-20 19:18:53,774 [ERROR] ❌🤖 Step-1: Could not get valid response from LLM after retries.
