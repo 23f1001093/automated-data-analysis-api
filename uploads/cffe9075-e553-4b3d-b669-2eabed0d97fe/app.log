@@ -1,7 +1,0 @@
-2025-08-20 20:57:49,898 [INFO] Step-1: Folder created: /Users/aditiprasad/Desktop/tds-2/uploads/cffe9075-e553-4b3d-b669-2eabed0d97fe
-2025-08-20 20:57:49,900 [INFO] Using Python executable: /Users/aditiprasad/Desktop/tds-2/venv/bin/python3
-2025-08-20 20:57:49,900 [INFO] 🤖 Step-1: Getting initial code from LLM. Attempt 1
-2025-08-20 20:57:58,889 [INFO] 🤖 Step-1: Successfully parsed response from LLM.
-2025-08-20 20:57:58,889 [INFO] 💻 Loop-1: Running LLM-generated code.
-2025-08-20 20:57:59,654 [INFO] ✅💻 Loop-1: Code executed successfully.
-2025-08-20 20:57:59,655 [INFO] 🤖 Loop-1: Getting next step from LLM. Attempt 1
