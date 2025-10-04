@@ -1,0 +1,24 @@
+2025-08-20 20:21:15,921 [INFO] Step-1: Folder created: /Users/aditiprasad/Desktop/tds-2/uploads/2dff6178-8c4a-48e6-94ff-c743adcb822e
+2025-08-20 20:21:15,924 [INFO] Using Python executable: /Users/aditiprasad/Desktop/tds-2/venv/bin/python3
+2025-08-20 20:21:15,924 [INFO] 🤖 Step-1: Getting initial code from LLM. Attempt 1
+2025-08-20 20:21:33,226 [INFO] 🤖 Step-1: Successfully parsed response from LLM.
+2025-08-20 20:21:33,227 [INFO] 💻 Loop-1: Running LLM-generated code.
+2025-08-20 20:21:37,143 [ERROR] ❌💻 Loop-1: Code execution failed: 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item KeyError: 'Source' The above exception was the direct cause of the following exception: Traceback (most recent call last): File "/Users/aditiprasad/Desktop/tds-2/uploads/2dff6178-8c4a-48e6-94ff-c743adcb822e/script.py", line 11, in <module> G = nx.from_pandas_edgelist(edges, source='Source', target='Target') File "/Users/aditiprasad/Desktop/tds-2/venv/lib/python3.13/site-packages/networkx/utils/decorators.py", line 784, in func return argmap._lazy_compile(__wrapper)(*args, **kwargs) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^ File "<class 'networkx.utils.decorators.argmap'> compilation 4", line 3, in argmap_from_pandas_edgelist_1 import gzip ^^^ File "/Users/aditiprasad/Desktop/tds-2/venv/lib/python3.13/site-packages/networkx/utils/backends.py", line 535, in _call_if_no_backends_installed return self.orig_func(*args, **kwargs) ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^ File "/Users/aditiprasad/Desktop/tds-2/venv/lib/python3.13/site-packages/networkx/convert_matrix.py", line 436, in from_pandas_edgelist g.add_edges_from(zip(df[source], df[target])) ~~^^^^^^^^ File "/Users/aditiprasad/Desktop/tds-2/venv/lib/python3.13/site-packages/pandas/core/frame.py", line 4107, in __getitem__ indexer = self.columns.get_loc(key) File "/Users/aditiprasad/Desktop/tds-2/venv/lib/python3.13/site-packages/pandas/core/indexes/base.py", line 3819, in get_loc raise KeyError(key) from err KeyError: 'Source'
+2025-08-20 20:21:37,143 [INFO] 🤖 Loop-1: Getting next step from LLM. Attempt 1
+2025-08-20 20:21:45,295 [INFO] 💻 Loop-2: Running LLM-generated code.
+2025-08-20 20:21:46,417 [INFO] ✅💻 Loop-2: Code executed successfully.
+2025-08-20 20:21:46,426 [INFO] ✅📁 Loop-2: Found result.json. Verifying...
+2025-08-20 20:21:46,427 [INFO] 🤖 Loop-2: Getting next step from LLM. Attempt 1
+2025-08-20 20:21:55,551 [INFO] 💻 Loop-3: Running LLM-generated code.
+2025-08-20 20:21:56,786 [INFO] ✅💻 Loop-3: Code executed successfully.
+2025-08-20 20:21:56,786 [INFO] ✅📁 Loop-3: Found result.json. Verifying...
+2025-08-20 20:21:56,787 [INFO] 🤖 Loop-3: Getting next step from LLM. Attempt 1
+2025-08-20 20:22:05,877 [INFO] 💻 Loop-4: Running LLM-generated code.
+2025-08-20 20:22:06,874 [INFO] ✅💻 Loop-4: Code executed successfully.
+2025-08-20 20:22:06,875 [INFO] ✅📁 Loop-4: Found result.json. Verifying...
+2025-08-20 20:22:06,876 [INFO] 🤖 Loop-4: Getting next step from LLM. Attempt 1
+2025-08-20 20:22:16,970 [INFO] 💻 Loop-5: Running LLM-generated code.
+2025-08-20 20:22:17,947 [INFO] ✅💻 Loop-5: Code executed successfully.
+2025-08-20 20:22:17,947 [INFO] ✅📁 Loop-5: Found result.json. Verifying...
+2025-08-20 20:22:17,947 [INFO] 🤖 Loop-5: Getting next step from LLM. Attempt 1
+2025-08-20 20:22:26,874 [INFO] ✅ Final result found. Returning to user.

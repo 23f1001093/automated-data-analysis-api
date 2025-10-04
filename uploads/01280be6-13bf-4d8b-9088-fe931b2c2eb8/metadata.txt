@@ -1,0 +1,9 @@
+Columns in edges.csv:
+['source', 'target']
+First few rows of edges.csv:
+  source target
+0  Alice    Bob
+1  Alice  Carol
+2    Bob  Carol
+3    Bob  David
+4    Bob    Eve

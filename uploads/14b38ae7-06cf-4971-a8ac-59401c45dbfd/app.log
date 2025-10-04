@@ -1,0 +1,19 @@
+2025-08-20 19:24:33,107 [INFO] Step-1: Folder created: uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd
+2025-08-20 19:24:33,110 [INFO] Using Python executable: /Users/aditiprasad/Desktop/tds-2/venv/bin/python3
+2025-08-20 19:24:33,110 [INFO] 🤖 Step-1: Getting initial code from LLM. Attempt 1
+2025-08-20 19:24:48,266 [INFO] 🤖 Step-1: Successfully parsed response from LLM.
+2025-08-20 19:24:48,266 [INFO] 💻 Loop-1: Running LLM-generated code.
+2025-08-20 19:24:48,298 [ERROR] ❌💻 Loop-1: Code execution failed: /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/aditiprasad/Desktop/tds-2/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/script.py': [Errno 2] No such file or directory
+2025-08-20 19:24:48,298 [INFO] 🤖 Loop-1: Getting next step from LLM. Attempt 1
+2025-08-20 19:24:57,132 [INFO] 💻 Loop-2: Running LLM-generated code.
+2025-08-20 19:24:57,154 [ERROR] ❌💻 Loop-2: Code execution failed: /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/aditiprasad/Desktop/tds-2/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/script.py': [Errno 2] No such file or directory
+2025-08-20 19:24:57,155 [INFO] 🤖 Loop-2: Getting next step from LLM. Attempt 1
+2025-08-20 19:25:08,359 [INFO] 💻 Loop-3: Running LLM-generated code.
+2025-08-20 19:25:08,428 [ERROR] ❌💻 Loop-3: Code execution failed: /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/aditiprasad/Desktop/tds-2/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/script.py': [Errno 2] No such file or directory
+2025-08-20 19:25:08,428 [INFO] 🤖 Loop-3: Getting next step from LLM. Attempt 1
+2025-08-20 19:25:16,751 [INFO] 💻 Loop-4: Running LLM-generated code.
+2025-08-20 19:25:16,810 [ERROR] ❌💻 Loop-4: Code execution failed: /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/aditiprasad/Desktop/tds-2/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/script.py': [Errno 2] No such file or directory
+2025-08-20 19:25:16,811 [INFO] 🤖 Loop-4: Getting next step from LLM. Attempt 1
+2025-08-20 19:25:27,232 [INFO] 💻 Loop-5: Running LLM-generated code.
+2025-08-20 19:25:27,291 [ERROR] ❌💻 Loop-5: Code execution failed: /opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python: can't open file '/Users/aditiprasad/Desktop/tds-2/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/uploads/14b38ae7-06cf-4971-a8ac-59401c45dbfd/script.py': [Errno 2] No such file or directory
+2025-08-20 19:25:27,291 [INFO] 🤖 Loop-5: Getting next step from LLM. Attempt 1

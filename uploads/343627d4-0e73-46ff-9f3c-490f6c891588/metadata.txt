@@ -1,0 +1,5 @@
+Index(['source', 'target'], dtype='object')
+  source target
+0  Alice    Bob
+1  Alice  Carol
+2    Bob  Carol
